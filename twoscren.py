@@ -3,21 +3,21 @@ import pygame
 # Initialize Pygame
 pygame.init()
 
-# Define the main screen dimensions
-main_screen_width, main_screen_height = 800, 600
+# Set up the display
+width, height = 660, 660
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Grid in Pygame")
 
-# Create the main screen
-main_screen = pygame.display.set_mode((main_screen_width, main_screen_height))
-pygame.display.set_caption("Main Screen")
+# Define grid parameters
+######These are common parameters in grid_draw and main file:
+# define twice, since I have find a way to add to other file:: 
+grid_size = 60  # Size of each grid cell
+grid_owner = [[0] * 10 for _ in range(10)] 
 
-# Create a clock to control the frame rate
-clock = pygame.time.Clock()
+grid_color = (255, 255, 255)  # Color of the grid lines
 
-# Define the pop-up screen dimensions
-popup_screen_width, popup_screen_height = 400, 300
-
-# Variable to control if the pop-up screen is visible
-popup_visible = False
+# Create a 2D grid data structure to represent the grid
+grid = [[0] * 10 for _ in range(10)]  # 10x10 grid initialized with zeros
 
 # Main game loop
 running = True
@@ -26,32 +26,37 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_p:  # Press 'P' to toggle pop-up
-                popup_visible = not popup_visible
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = event.pos
+            grid_x = x // grid_size
+            grid_y = y // grid_size
+            # Toggle the state of the grid cell (mark/unmark)
+            grid[grid_y-1][grid_x-1] = 1 - grid[grid_y-1][grid_x-1]
 
-    # Fill the main screen with a color
-    main_screen.fill((255, 255, 255))
+    # Clear the screen
+    screen.fill((0, 0, 0))
 
-    # Draw something on the main screen
-    pygame.draw.rect(main_screen, (0, 0, 255), (100, 100, 200, 200))
+    # Draw the grid and print the grid values
+    for x in range(0, width, grid_size):
+        pygame.draw.line(screen, grid_color, (x, 0), (x, height))
+    for y in range(0, height, grid_size):
+        pygame.draw.line(screen, grid_color, (0, y), (width, y))
 
-    if popup_visible:
-        # Fill the pop-up screen with a different color
-        popup_surface = pygame.Surface((popup_screen_width, popup_screen_height))
-        popup_surface.fill((255, 0, 0))
+    # Draw colored rectangles based on grid values and print values
+    font = pygame.font.Font(None, 36)
+    for row in range(10):
+        for col in range(10):
+            rect = pygame.Rect(col * grid_size + 60, row * grid_size + 60, grid_size, grid_size)
+            if grid[row][col] == 1:
+                pygame.draw.rect(screen, (0, 255, 0), rect)
+                text = font.render("1", True, (255, 255, 255))
+            else:
+                pygame.draw.rect(screen, (255, 0, 0), rect)
+                text = font.render("0", True, (255, 255, 255))
+            screen.blit(text, rect.topleft)
 
-        # Draw something on the pop-up screen
-        pygame.draw.rect(popup_surface, (0, 255, 0), (50, 50, 100, 100))
-
-        # Blit the pop-up screen onto the main screen
-        main_screen.blit(popup_surface, (main_screen_width // 2 - popup_screen_width // 2, main_screen_height // 2 - popup_screen_height // 2))
-
-    # Update the main display
+    # Update the display
     pygame.display.flip()
-
-    # Limit the frame rate
-    clock.tick(60)
 
 # Quit Pygame
 pygame.quit()
